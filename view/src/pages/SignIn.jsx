@@ -1,3 +1,7 @@
+// import "./Header.css";
+import { useHistory } from "react-router-dom";
+import axios from "axios";
+import { useFormik } from "formik";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -5,18 +9,14 @@ import TextField from "@mui/material/TextField";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Link from "@mui/material/Link";
-import Paper from "@mui/material/Paper";
-import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import { useFormik } from "formik";
 import * as yup from "yup";
 import { baseUrl } from "../core";
-
-import axios from "axios";
-import { useHistory } from "react-router-dom";
 
 const validationSchema = yup.object({
   email: yup
@@ -26,7 +26,6 @@ const validationSchema = yup.object({
   password: yup
     .string("Enter your password")
     .min(8, "Password should be of minimum 8 characters length")
-    .max(10, "No more then 10")
     .required("Password is required"),
 });
 
@@ -80,7 +79,11 @@ const SignIn = () => {
   return (
     <>
       <ThemeProvider theme={theme}>
-        <Grid container component="main" sx={{ height: "100vh" }}>
+        <Grid
+          container
+          component="main"
+          sx={{ height: "100vh", overflow: "hidden" }}
+        >
           <CssBaseline />
           <Grid
             item

@@ -1,3 +1,5 @@
+// import "./Header.css";
+import { useState } from "";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
 import { useFormik } from "formik";
@@ -11,15 +13,17 @@ import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
-import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import * as yup from "yup";
 import { baseUrl } from "../core";
 
 const validationSchema = yup.object({
-  name: yup.string("Enter your name").required("Name is required"),
+  firstName: yup.string("Enter your First name").required("Name is required"),
+  lastName: yup.string("Enter your Last name").required("Name is required"),
   email: yup
     .string("Enter your email")
     .email("Enter a valid email")
@@ -27,7 +31,6 @@ const validationSchema = yup.object({
   password: yup
     .string("Enter your password")
     .min(8, "Password should be of minimum 8 characters length")
-    .max(10, "No more then 10")
     .required("Password is required"),
 });
 
@@ -54,30 +57,57 @@ const theme = createTheme();
 const SignUp = () => {
   let history = useHistory();
 
+  const [open, setOpen] = useState(false);
+
   const formik = useFormik({
     validationSchema: validationSchema,
     initialValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
     },
     onSubmit: function (values) {
+      console.log("values: ", values);
       axios
-        .post(`${baseUrl}/api/v1/signup`, {
-          name: values.name,
+        .post(`${baseUrl}/api/v1/user`, {
+          firstName: values.firstName,
+          lastName: values.lastName,
           email: values.email,
           password: values.password,
         })
         .then((res) => {
           console.log("res: ", res.data);
+          if (res.data.email) {
+            history.push("/signin");
+          }
+        })
+        .catch((error) => {
+          setOpen(true);
         });
     },
   });
+  
+  const handleClick = () => {
+    setOpen(true);
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
 
   return (
     <>
       <ThemeProvider theme={theme}>
-        <Grid container component="main" sx={{ height: "100vh" }}>
+        <Grid
+          container
+          component="main"
+          sx={{ height: "100vh", overflow: "hidden" }}
+        >
           <CssBaseline />
           <Grid
             item
@@ -150,7 +180,14 @@ const SignUp = () => {
                       id="lastName"
                       label="Last Name"
                       name="lastName"
-                      autoComplete="family-name"
+                      autoComplete="given-name"
+                      autoFocus
+                      color="primary"
+                      variant="outlined"
+                      value={formik.values.name}
+                      onChange={formik.handleChange}
+                      error={formik.touched.name && Boolean(formik.errors.name)}
+                      helperText={formik.touched.name && formik.errors.name}
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -215,7 +252,7 @@ const SignUp = () => {
                   <Grid item>
                     <Link
                       onClick={() => {
-                        history.push("/signin");
+                        history.push("/login");
                       }}
                       variant="body2"
                     >
@@ -223,11 +260,17 @@ const SignUp = () => {
                     </Link>
                   </Grid>
                 </Grid>
+                <Copyright sx={{ mt: 5 }} />
               </Box>
             </Box>
           </Grid>
         </Grid>
       </ThemeProvider>
+      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+          This is a success message!
+        </Alert>
+      </Snackbar>
     </>
   );
 };
