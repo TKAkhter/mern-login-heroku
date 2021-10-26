@@ -1,5 +1,4 @@
 // import "./Header.css";
-import { useState } from "";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
 import { useFormik } from "formik";
@@ -13,8 +12,6 @@ import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -57,8 +54,6 @@ const theme = createTheme();
 const SignUp = () => {
   let history = useHistory();
 
-  const [open, setOpen] = useState(false);
-
   const formik = useFormik({
     validationSchema: validationSchema,
     initialValues: {
@@ -83,22 +78,10 @@ const SignUp = () => {
           }
         })
         .catch((error) => {
-          setOpen(true);
+          console.log("error: ", error);
         });
     },
   });
-  
-  const handleClick = () => {
-    setOpen(true);
-  };
-
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-
-    setOpen(false);
-  };
 
   return (
     <>
@@ -266,11 +249,6 @@ const SignUp = () => {
           </Grid>
         </Grid>
       </ThemeProvider>
-      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-          This is a success message!
-        </Alert>
-      </Snackbar>
     </>
   );
 };

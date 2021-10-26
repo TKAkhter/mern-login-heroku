@@ -35,8 +35,8 @@ const User = mongoose.model("User", {
 });
 
 const Post = mongoose.model("Post", {
-  text: String,
-  author: String,
+  title: String,
+  description: String,
 });
 
 mongoose.connection.on("connected", () => console.log("mongoose connected"));
@@ -112,8 +112,8 @@ app.post("/api/v1/login", (req, res) => {
 
 app.post("/api/v1/post", (req, res) => {
   const newpost = new Post({
-    text: req.body.text,
-    author: req.body.author,
+    title: req.body.text,
+    description: req.body.description,
   });
   newpost.save().then(() => {
     console.log("Post created");
