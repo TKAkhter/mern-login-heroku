@@ -52,10 +52,10 @@ const Copyright = (props) => {
 
 const theme = createTheme();
 
-const SignIn = () => {
+const Login = () => {
   let history = useHistory();
 
-  let { state, dispatch } = useContext(GlobalContext);
+  let { dispatch } = useContext(GlobalContext);
 
   const formik = useFormik({
     validationSchema: validationSchema,
@@ -222,4 +222,4 @@ const SignIn = () => {
   );
 };
 
-export default SignIn;
+export default Login;
