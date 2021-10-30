@@ -1,5 +1,6 @@
 // import "./Header.css";
-import { useHistory } from "react-router-dom";
+import { useState } from "react";
+import { Redirect, useHistory } from "react-router-dom";
 import axios from "axios";
 import { useFormik } from "formik";
 import Avatar from "@mui/material/Avatar";
@@ -52,6 +53,8 @@ const Copyright = (props) => {
 const theme = createTheme();
 
 const SignUp = () => {
+  const [redirect, setRedirect] = useState(false);
+
   let history = useHistory();
 
   const formik = useFormik({
@@ -74,7 +77,8 @@ const SignUp = () => {
         .then((res) => {
           console.log("res: ", res.data);
           if (res.data.email) {
-            history.push("/signin");
+            // history.push("/signin");
+            setRedirect(true);
           }
         })
         .catch((error) => {
@@ -82,175 +86,189 @@ const SignUp = () => {
         });
     },
   });
-
-  return (
-    <>
-      <ThemeProvider theme={theme}>
-        <Grid
-          container
-          component="main"
-          sx={{ height: "100vh", overflow: "hidden" }}
-        >
-          <CssBaseline />
-          <Grid
-            item
-            xs={false}
-            sm={4}
-            md={7}
-            sx={{
-              backgroundImage: "url(https://source.unsplash.com/random)",
-              backgroundRepeat: "no-repeat",
-              backgroundColor: (t) =>
-                t.palette.mode === "light"
-                  ? t.palette.grey[50]
-                  : t.palette.grey[900],
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
-          <Grid
-            item
-            xs={12}
-            sm={8}
-            md={5}
-            component={Paper}
-            elevation={6}
-            square
-          >
-            <Box
-              sx={{
-                my: 8,
-                mx: 4,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
+  {
+    if (redirect) {
+      return <Redirect to="/signin" />;
+    } else {
+      return (
+        <>
+          <ThemeProvider theme={theme}>
+            <Grid
+              container
+              component="main"
+              sx={{ height: "100vh", overflow: "hidden" }}
             >
-              <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-                <LockOutlinedIcon />
-              </Avatar>
-              <Typography component="h1" variant="h5">
-                Sign up
-              </Typography>
-              <Box
-                component="form"
-                noValidate
-                onSubmit={formik.handleSubmit}
-                sx={{ mt: 3 }}
+              <CssBaseline />
+              <Grid
+                item
+                xs={false}
+                sm={4}
+                md={7}
+                sx={{
+                  backgroundImage: "url(https://source.unsplash.com/random)",
+                  backgroundRepeat: "no-repeat",
+                  backgroundColor: (t) =>
+                    t.palette.mode === "light"
+                      ? t.palette.grey[50]
+                      : t.palette.grey[900],
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+              <Grid
+                item
+                xs={12}
+                sm={8}
+                md={5}
+                component={Paper}
+                elevation={6}
+                square
               >
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      autoComplete="given-name"
-                      name="firstName"
-                      required
-                      fullWidth
-                      id="firstName"
-                      label="First Name"
-                      autoFocus
-                      color="primary"
-                      variant="outlined"
-                      value={formik.values.name}
-                      onChange={formik.handleChange}
-                      error={formik.touched.name && Boolean(formik.errors.name)}
-                      helperText={formik.touched.name && formik.errors.name}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      required
-                      fullWidth
-                      id="lastName"
-                      label="Last Name"
-                      name="lastName"
-                      autoComplete="given-name"
-                      autoFocus
-                      color="primary"
-                      variant="outlined"
-                      value={formik.values.name}
-                      onChange={formik.handleChange}
-                      error={formik.touched.name && Boolean(formik.errors.name)}
-                      helperText={formik.touched.name && formik.errors.name}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      required
-                      fullWidth
-                      id="email"
-                      label="Email Address"
-                      name="email"
-                      autoComplete="email"
-                      color="primary"
-                      variant="outlined"
-                      value={formik.values.email}
-                      onChange={formik.handleChange}
-                      error={
-                        formik.touched.email && Boolean(formik.errors.email)
-                      }
-                      helperText={formik.touched.email && formik.errors.email}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      required
-                      fullWidth
-                      name="password"
-                      label="Password"
-                      type="password"
-                      id="password"
-                      autoComplete="new-password"
-                      color="primary"
-                      variant="outlined"
-                      value={formik.values.password}
-                      onChange={formik.handleChange}
-                      error={
-                        formik.touched.password &&
-                        Boolean(formik.errors.password)
-                      }
-                      helperText={
-                        formik.touched.password && formik.errors.password
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox value="allowExtraEmails" color="primary" />
-                      }
-                      label="I want to receive inspiration, marketing promotions and updates via email."
-                    />
-                  </Grid>
-                </Grid>
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  sx={{ mt: 3, mb: 2 }}
-                  color="primary"
+                <Box
+                  sx={{
+                    my: 8,
+                    mx: 4,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
                 >
-                  Sign Up
-                </Button>
-                <Grid container justifyContent="flex-end">
-                  <Grid item>
-                    <Link
-                      onClick={() => {
-                        history.push("/login");
-                      }}
-                      variant="body2"
+                  <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
+                    <LockOutlinedIcon />
+                  </Avatar>
+                  <Typography component="h1" variant="h5">
+                    Sign up
+                  </Typography>
+                  <Box
+                    component="form"
+                    noValidate
+                    onSubmit={formik.handleSubmit}
+                    sx={{ mt: 3 }}
+                  >
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          autoComplete="given-name"
+                          name="firstName"
+                          required
+                          fullWidth
+                          id="firstName"
+                          label="First Name"
+                          autoFocus
+                          color="primary"
+                          variant="outlined"
+                          value={formik.values.name}
+                          onChange={formik.handleChange}
+                          error={
+                            formik.touched.name && Boolean(formik.errors.name)
+                          }
+                          helperText={formik.touched.name && formik.errors.name}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          required
+                          fullWidth
+                          id="lastName"
+                          label="Last Name"
+                          name="lastName"
+                          autoComplete="given-name"
+                          autoFocus
+                          color="primary"
+                          variant="outlined"
+                          value={formik.values.name}
+                          onChange={formik.handleChange}
+                          error={
+                            formik.touched.name && Boolean(formik.errors.name)
+                          }
+                          helperText={formik.touched.name && formik.errors.name}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          required
+                          fullWidth
+                          id="email"
+                          label="Email Address"
+                          name="email"
+                          autoComplete="email"
+                          color="primary"
+                          variant="outlined"
+                          value={formik.values.email}
+                          onChange={formik.handleChange}
+                          error={
+                            formik.touched.email && Boolean(formik.errors.email)
+                          }
+                          helperText={
+                            formik.touched.email && formik.errors.email
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          required
+                          fullWidth
+                          name="password"
+                          label="Password"
+                          type="password"
+                          id="password"
+                          autoComplete="new-password"
+                          color="primary"
+                          variant="outlined"
+                          value={formik.values.password}
+                          onChange={formik.handleChange}
+                          error={
+                            formik.touched.password &&
+                            Boolean(formik.errors.password)
+                          }
+                          helperText={
+                            formik.touched.password && formik.errors.password
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              value="allowExtraEmails"
+                              color="primary"
+                            />
+                          }
+                          label="I want to receive inspiration, marketing promotions and updates via email."
+                        />
+                      </Grid>
+                    </Grid>
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      sx={{ mt: 3, mb: 2 }}
+                      color="primary"
                     >
-                      Already have an account? Sign in
-                    </Link>
-                  </Grid>
-                </Grid>
-                <Copyright sx={{ mt: 5 }} />
-              </Box>
-            </Box>
-          </Grid>
-        </Grid>
-      </ThemeProvider>
-    </>
-  );
+                      Sign Up
+                    </Button>
+                    <Grid container justifyContent="flex-end">
+                      <Grid item>
+                        <Link
+                          onClick={() => {
+                            history.push("/login");
+                          }}
+                          variant="body2"
+                        >
+                          Already have an account? Sign in
+                        </Link>
+                      </Grid>
+                    </Grid>
+                    <Copyright sx={{ mt: 5 }} />
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+          </ThemeProvider>
+        </>
+      );
+    }
+  }
 };
 
 export default SignUp;

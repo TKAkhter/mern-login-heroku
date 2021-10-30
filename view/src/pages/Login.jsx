@@ -18,6 +18,9 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import * as yup from "yup";
 import { baseUrl } from "../core";
 
+import { GlobalContext } from "../context/Context";
+import { useContext } from "react";
+
 const validationSchema = yup.object({
   email: yup
     .string("Enter your email")
@@ -52,6 +55,8 @@ const theme = createTheme();
 const SignIn = () => {
   let history = useHistory();
 
+  let { state, dispatch } = useContext(GlobalContext);
+
   const formik = useFormik({
     validationSchema: validationSchema,
     initialValues: {
@@ -70,8 +75,20 @@ const SignIn = () => {
           console.log("res: ", res.data);
 
           if (res.data.email) {
-            history.push("/");
+            dispatch({
+              type: "USER_LOGIN",
+              payload: {
+                firstName: res.data.firstName,
+                lastName: res.data.lastName,
+                email: res.data.email,
+                _id: res.data._id,
+              },
+            });
+            // history.push("/")
           }
+        })
+        .catch((e) => {
+          console.log("error: ", e);
         });
     },
   });

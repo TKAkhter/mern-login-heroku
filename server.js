@@ -4,7 +4,7 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt-inzi");
 // const indexRouter = require("./routes/index");
 // const usersRouter = require("./routes/users");
 
@@ -12,7 +12,11 @@ const app = express();
 
 app.use(logger("dev"));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(
+  express.urlencoded({
+    extended: false,
+  })
+);
 app.use(cors(["localhost:3000", "localhost:5000"]));
 app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, "view/build")));
@@ -31,7 +35,10 @@ const User = mongoose.model("User", {
   lastName: String,
   email: String,
   password: String,
-  created: { type: Date, default: Date.now },
+  created: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const Post = mongoose.model("Post", {
@@ -56,35 +63,44 @@ app.get("/api/v1/user", (req, res) => {
 
 app.post("/api/v1/user", (req, res) => {
   // Bcrypt
-  User.findOne({ email: req.body.email }, (err, data) => {
-    if (data?.email) {
-      console.log("User Already Exist");
-      res.status(403).send("User Already Exist");
-      return;
-    } else if (!req.body.email || !req.body.password || !req.body.firstName) {
-      console.log("required field missing");
-      res.status(403).send("required field missing");
-      return;
-    } else {
-      // console.log("Users Added");
-      // console.log(req.body);
 
-      // const salt = bcrypt.genSalt(10);
-      // const secPass = bcrypt.hash(req.body.password, salt);
-
-      let newUser = new User({
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
+  if (
+    !req.body.email ||
+    !req.body.password ||
+    !req.body.firstName ||
+    !req.body.lastName
+  ) {
+    console.log("required field missing");
+    res.status(403).send("required field missing");
+    return;
+  } else {
+    User.findOne(
+      {
         email: req.body.email,
-        // password: secPass,
-        password: req.body.password,
-      });
-      newUser.save(() => {
-        console.log("data saved");
-        res.send("profile created");
-      });
-    }
-  });
+      },
+      (err, user) => {
+        if (user) {
+          res.send("user already exist");
+        } else {
+          console.log(req.body);
+          bcrypt.stringToHash(req.body.password).then((passwordHash) => {
+            console.log("hash: ", passwordHash);
+
+            let newUser = new User({
+              firstName: req.body.firstName,
+              lastName: req.body.lastName,
+              email: req.body.email,
+              password: passwordHash,
+            });
+            newUser.save(() => {
+              console.log("data saved");
+              res.send("profile created");
+            });
+          });
+        }
+      }
+    );
+  }
 });
 
 app.post("/api/v1/login", (req, res) => {
@@ -93,29 +109,45 @@ app.post("/api/v1/login", (req, res) => {
     res.status(403).send("required field missing");
     return;
   }
-  User.findOne({ email: req.body.email }, (err, user) => {
-    if (err) {
-      res.status(500).send("error in getting database");
-    } else {
-      if (user) {
-        if (user.password === req.body.password) {
-          res.send(user);
-        } else {
-          res.send("Authentication fail");
-        }
+  User.findOne(
+    {
+      email: req.body.email,
+    },
+    (err, user) => {
+      if (err) {
+        res.status(500).send("error in getting database");
       } else {
-        res.send("user not found");
+        if (user) {
+          bcrypt.varifyHash(req.body.password, user.password)
+            .then((result) => {
+              if (result) {
+                res.send({
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  email: user.email,
+                  _id: user._id,
+                });
+              } else {
+                res.status(401).send("Authentication fail");
+              }
+            })
+            .catch((e) => {
+              console.log("error: ", e);
+            });
+        } else {
+          res.send("user not found");
+        }
       }
     }
-  });
+  );
 });
 
 app.post("/api/v1/post", (req, res) => {
-  const newpost = new Post({
+  const newPost = new Post({
     title: req.body.text,
     description: req.body.description,
   });
-  newpost.save().then(() => {
+  newPost.save().then(() => {
     console.log("Post created");
     res.send("Post created");
   });
@@ -127,9 +159,9 @@ app.get("/api/v1/post", (req, res) => {
   });
 });
 
-app.use("/**", (req, res) => {
+app.get("/**", (req, res, next) => {
+  res.sendFile(path.join(__dirname, "./web/build/index.html"));
   // res.redirect("/")
-  res.sendFile(path.join(__dirname, "/web/build/index.html"));
 });
 
 module.exports = app;
