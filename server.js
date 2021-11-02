@@ -44,6 +44,11 @@ const User = mongoose.model("User", {
 const Post = mongoose.model("Post", {
   title: String,
   description: String,
+  firstName: String,
+  created: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 mongoose.connection.on("connected", () => console.log("mongoose connected"));
@@ -118,7 +123,8 @@ app.post("/api/v1/login", (req, res) => {
         res.status(500).send("error in getting database");
       } else {
         if (user) {
-          bcrypt.varifyHash(req.body.password, user.password)
+          bcrypt
+            .varifyHash(req.body.password, user.password)
             .then((result) => {
               if (result) {
                 res.send({
@@ -144,8 +150,9 @@ app.post("/api/v1/login", (req, res) => {
 
 app.post("/api/v1/post", (req, res) => {
   const newPost = new Post({
-    title: req.body.text,
+    title: req.body.title,
     description: req.body.description,
+    firstName: req.body.firstName,
   });
   newPost.save().then(() => {
     console.log("Post created");
@@ -153,10 +160,18 @@ app.post("/api/v1/post", (req, res) => {
   });
 });
 
-app.get("/api/v1/post", (req, res) => {
-  Post.find({}, (err, data) => {
-    res.send(data);
+app.delete("/api/v1/post", (req, res) => {
+  Post.deleteOne({ _id: req.body.id }, (err, data) => {
+    res.send("Post deleted");
   });
+});
+
+app.get("/api/v1/post", (req, res) => {
+  Post.find({})
+    .sort({ created: 'desc' })
+    .exec(function (err, data) {
+      res.send(data);
+    });
 });
 
 app.get("/**", (req, res, next) => {
