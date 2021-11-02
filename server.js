@@ -21,7 +21,7 @@ app.use(cors(["localhost:3000", "localhost:5000"]));
 app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, "view/build")));
 
-app.use("/", express.static(path.join(__dirname, "/web/build")));
+app.use("/", express.static(path.join(__dirname, "/view/build")));
 
 // app.use("/", indexRouter);
 // app.use("/users", usersRouter);
@@ -175,7 +175,7 @@ app.get("/api/v1/post", (req, res) => {
 });
 
 app.get("/**", (req, res, next) => {
-  res.sendFile(path.join(__dirname, "./web/build/index.html"));
+  res.sendFile(path.join(__dirname, "./view/build/index.html"));
   // res.redirect("/")
 });
 
