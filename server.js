@@ -5,9 +5,11 @@ const logger = require("morgan");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcrypt-inzi");
+const jwt = require("jsonwebtoken");
 // const indexRouter = require("./routes/index");
 // const usersRouter = require("./routes/users");
 
+const SECRET = process.env.SECRET || "12345";
 const app = express();
 
 app.use(logger("dev"));
@@ -56,14 +58,56 @@ mongoose.connection.on("error", (error) =>
   console.log(`mongoose error ${error.message}`)
 );
 
-app.delete("/api/v1/profile", (req, res) => {
-  res.send("profile deleted");
-});
+app.post("/api/v1/login", (req, res) => {
+  if (!req.body.email || !req.body.password) {
+    console.log("required field missing");
+    res.status(403).send("required field missing");
+    return;
+  }
+  User.findOne(
+    {
+      email: req.body.email,
+    },
+    (err, user) => {
+      if (err) {
+        res.status(500).send("error in getting database");
+      } else {
+        if (user) {
+          bcrypt
+            .varifyHash(req.body.password, user.password)
+            .then((result) => {
+              if (result) {
+                var token = jwt.sign(
+                  {
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    _id: user._id,
+                  },
+                  SECRET
+                );
+                console.log("token created: ", token);
 
-app.get("/api/v1/user", (req, res) => {
-  User.find({}, (err, data) => {
-    res.send(data);
-  });
+                res.send({
+                  token: token,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  email: user.email,
+                  _id: user._id,
+                });
+              } else {
+                res.status(401).send("Authentication fail");
+              }
+            })
+            .catch((e) => {
+              console.log("error: ", e);
+            });
+        } else {
+          res.send("user not found");
+        }
+      }
+    }
+  );
 });
 
 app.post("/api/v1/user", (req, res) => {
@@ -108,44 +152,28 @@ app.post("/api/v1/user", (req, res) => {
   }
 });
 
-app.post("/api/v1/login", (req, res) => {
-  if (!req.body.email || !req.body.password) {
-    console.log("required field missing");
-    res.status(403).send("required field missing");
-    return;
-  }
-  User.findOne(
-    {
-      email: req.body.email,
-    },
-    (err, user) => {
-      if (err) {
-        res.status(500).send("error in getting database");
-      } else {
-        if (user) {
-          bcrypt
-            .varifyHash(req.body.password, user.password)
-            .then((result) => {
-              if (result) {
-                res.send({
-                  firstName: user.firstName,
-                  lastName: user.lastName,
-                  email: user.email,
-                  _id: user._id,
-                });
-              } else {
-                res.status(401).send("Authentication fail");
-              }
-            })
-            .catch((e) => {
-              console.log("error: ", e);
-            });
-        } else {
-          res.send("user not found");
-        }
-      }
+app.use((req, res, next) => {
+  console.log(req.query.token);
+  let userToken = req.query.token != undefined ? req.query.token : req.body.token;
+  jwt.verify(userToken, SECRET, function (err, decoded) {
+    console.log(decoded); // bar
+
+    if (!err) {
+      next();
+    } else {
+      res.status(401).send("Un-Authenticated");
     }
-  );
+  });
+});
+
+app.get("/api/v1/user", (req, res) => {
+  User.find({}, (err, data) => {
+    res.send(data);
+  });
+});
+
+app.delete("/api/v1/profile", (req, res) => {
+  res.send("profile deleted");
 });
 
 app.post("/api/v1/post", (req, res) => {
@@ -168,7 +196,7 @@ app.delete("/api/v1/post", (req, res) => {
 
 app.get("/api/v1/post", (req, res) => {
   Post.find({})
-    .sort({ created: 'desc' })
+    .sort({ created: "desc" })
     .exec(function (err, data) {
       res.send(data);
     });

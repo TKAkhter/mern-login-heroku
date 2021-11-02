@@ -81,6 +81,7 @@ const Login = () => {
                 firstName: res.data.firstName,
                 lastName: res.data.lastName,
                 email: res.data.email,
+                token: res.data.token,
                 _id: res.data._id,
               },
             });

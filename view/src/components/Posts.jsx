@@ -24,14 +24,18 @@ const validationSchema = yup.object({
 });
 
 const Posts = () => {
-  let { state, dispatch } = useContext(GlobalContext);
+  let { state } = useContext(GlobalContext);
 
   const [todo, settodo] = useState([]);
   const [itemChange, setItemChange] = useState(true);
 
   useEffect(() => {
     axios
-      .get(`${baseUrl}/api/v1/post`, {})
+      .get(`${baseUrl}/api/v1/post`, {
+        params: {
+          token: state.user.token,
+        },
+      })
       .then((res) => {
         console.log("res: ", res.data);
         settodo(res.data);
@@ -53,6 +57,7 @@ const Posts = () => {
           title: values.title,
           description: values.description,
           firstName: state?.user?.firstName,
+          token: state.user.token,
         })
         .then((res) => {
           console.log("res: ", res.data);
@@ -68,7 +73,7 @@ const Posts = () => {
   const deletePost = (id) => {
     axios
       .delete(`${baseUrl}/api/v1/post`, {
-        data: { id: id.target.parentNode.id },
+        data: { id: id.target.parentNode.id, token: state.user.token },
       })
       .then((res) => {
         console.log("res: ", res.data);
