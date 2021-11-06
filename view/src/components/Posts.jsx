@@ -31,11 +31,7 @@ const Posts = () => {
 
   useEffect(() => {
     axios
-      .get(`${baseUrl}/api/v1/post`, {
-        params: {
-          token: state.user.token,
-        },
-      })
+      .get(`${baseUrl}/api/v1/post`, { withCredentials: true })
       .then((res) => {
         console.log("res: ", res.data);
         settodo(res.data);
@@ -53,12 +49,16 @@ const Posts = () => {
     onSubmit: function (values) {
       console.log("values: ", values);
       axios
-        .post(`${baseUrl}/api/v1/post`, {
-          title: values.title,
-          description: values.description,
-          firstName: state?.user?.firstName,
-          token: state.user.token,
-        })
+        .post(
+          `${baseUrl}/api/v1/post`,
+          {
+            title: values.title,
+            description: values.description,
+            firstName: state?.user?.firstName,
+            access_token: state.user.access_token,
+          },
+          { withCredentials: true }
+        )
         .then((res) => {
           console.log("res: ", res.data);
           setItemChange(!itemChange);
@@ -73,7 +73,11 @@ const Posts = () => {
   const deletePost = (id) => {
     axios
       .delete(`${baseUrl}/api/v1/post`, {
-        data: { id: id.target.parentNode.id, token: state.user.token },
+        data: {
+          id: id.target.parentNode.id,
+          access_token: state.user.access_token,
+        },
+        withCredentials: true,
       })
       .then((res) => {
         console.log("res: ", res.data);

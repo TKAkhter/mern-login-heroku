@@ -8,7 +8,7 @@ export const reducer = (state, action) => {
         action.payload.firstName &&
         action.payload.lastName &&
         action.payload.email &&
-        action.payload.token &&
+        action.payload.access_token &&
         action.payload._id) {
 
         return { ...state, user: action.payload }

@@ -19,11 +19,16 @@ app.use(
     extended: false,
   })
 );
-app.use(cors(["localhost:3000", "localhost:5000"]));
 app.use(cookieParser());
-// app.use(express.static(path.join(__dirname, "view/build")));
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:5000"],
+    credentials: true,
+  })
+);
 
 app.use("/", express.static(path.join(__dirname, "/view/build")));
+// app.use(express.static(path.join(__dirname, "view/build")));
 
 // app.use("/", indexRouter);
 // app.use("/users", usersRouter);
@@ -57,58 +62,6 @@ mongoose.connection.on("connected", () => console.log("mongoose connected"));
 mongoose.connection.on("error", (error) =>
   console.log(`mongoose error ${error.message}`)
 );
-
-app.post("/api/v1/login", (req, res) => {
-  if (!req.body.email || !req.body.password) {
-    console.log("required field missing");
-    res.status(403).send("required field missing");
-    return;
-  }
-  User.findOne(
-    {
-      email: req.body.email,
-    },
-    (err, user) => {
-      if (err) {
-        res.status(500).send("error in getting database");
-      } else {
-        if (user) {
-          bcrypt
-            .varifyHash(req.body.password, user.password)
-            .then((result) => {
-              if (result) {
-                var token = jwt.sign(
-                  {
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    email: user.email,
-                    _id: user._id,
-                  },
-                  SECRET
-                );
-                console.log("token created: ", token);
-
-                res.send({
-                  token: token,
-                  firstName: user.firstName,
-                  lastName: user.lastName,
-                  email: user.email,
-                  _id: user._id,
-                });
-              } else {
-                res.status(401).send("Authentication fail");
-              }
-            })
-            .catch((e) => {
-              console.log("error: ", e);
-            });
-        } else {
-          res.send("user not found");
-        }
-      }
-    }
-  );
-});
 
 app.post("/api/v1/user", (req, res) => {
   // Bcrypt
@@ -152,23 +105,116 @@ app.post("/api/v1/user", (req, res) => {
   }
 });
 
+app.post("/api/v1/login", (req, res) => {
+  if (!req.body.email || !req.body.password) {
+    console.log("required field missing");
+    res.status(403).send("required field missing");
+    return;
+  }
+  User.findOne(
+    {
+      email: req.body.email,
+    },
+    (err, user) => {
+      if (err) {
+        res.status(500).send("error in getting database");
+      } else {
+        if (user) {
+          bcrypt
+            .varifyHash(req.body.password, user.password)
+            .then((result) => {
+              if (result) {
+                var access_token = jwt.sign(
+                  {
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    _id: user._id,
+                  },
+                  SECRET
+                );
+                console.log("token created: ", access_token);
+                res.cookie("access_token", access_token, {
+                  httpOnly: true,
+                  // expires: (new Date().getTime + 300000), //5 minutes
+                  maxAge: 300000,
+                });
+                res.send({
+                  access_token: access_token,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  email: user.email,
+                  _id: user._id,
+                });
+              } else {
+                res.status(401).send("Authentication fail");
+              }
+            })
+            .catch((e) => {
+              console.log("error: ", e);
+            });
+        } else {
+          res.send("user not found");
+        }
+      }
+    }
+  );
+});
+
 app.use((req, res, next) => {
-  console.log(req.query.token);
-  let userToken = req.query.token != undefined ? req.query.token : req.body.token;
-  jwt.verify(userToken, SECRET, function (err, decoded) {
-    console.log(decoded); // bar
+  const access_token = req.cookies.access_token;
+  console.log("Cookie: ", access_token);
+  if (!access_token) {
+    return res.sendStatus(403);
+  }
+  jwt.verify(access_token, SECRET, function (err, decoded) {
+    console.log("decoded: ", decoded); // bar
+    req.body._decoded = decoded;
 
     if (!err) {
       next();
     } else {
-      res.status(401).send("Un-Authenticated");
+      res.sendStatus(403);
     }
   });
+});
+
+// get the cookie incoming request
+app.get("/api/v1/getcookie", (req, res) => {
+  //show the saved cookies
+  console.log(req.cookies);
+  res.send(req.cookies);
+});
+
+app.post("/api/v1/logout", (req, res, next) => {
+  res.cookie("access_token", "", {
+    httpOnly: true,
+    maxAge: 300000,
+  });
+  res.send();
 });
 
 app.get("/api/v1/user", (req, res) => {
   User.find({}, (err, data) => {
     res.send(data);
+  });
+});
+
+app.get("/api/v1/profile", (req, res) => {
+  User.findOne({ email: req.query.email }, (err, user) => {
+    if (err) {
+      res.status(500).send("error in getting database");
+    } else {
+      if (user) {
+        res.send({
+          name: user.name,
+          email: user.email,
+          _id: user._id,
+        });
+      } else {
+        res.send("user not found");
+      }
+    }
   });
 });
 

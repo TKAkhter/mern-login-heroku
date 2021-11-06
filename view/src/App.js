@@ -2,16 +2,34 @@ import { Switch, Route, Redirect } from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
-
-import { GlobalContext } from "./context/Context";
-import { useContext } from "react";
+import { useState } from "react";
+import axios from "axios";
+import { baseUrl } from "./core";
 
 function App() {
-  let { state } = useContext(GlobalContext);
-
+  let [isLogged, setIsLogged] = useState(false);
+  // useEffect(() => {
+  //   axios
+  //     .get(`${baseUrl}/api/v1/getcookie`, { withCredentials: true })
+  //     .then((res) => {
+  //       setIsLogged(true);
+  //     })
+  //     .catch((e) => {
+  //       console.log("error: ", e);
+  //     });
+  // }, [isLogged]);
+  axios
+    .get(`${baseUrl}/api/v1/getcookie`, { withCredentials: true })
+    .then((res) => {
+      setIsLogged(true);
+    })
+    .catch((e) => {
+      console.log("error: ", e);
+      setIsLogged(false);
+    });
   return (
     <>
-      {state.user.email ? (
+      {isLogged ? (
         <Switch>
           <Route exact path="/">
             <Home />

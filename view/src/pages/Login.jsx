@@ -67,10 +67,16 @@ const Login = () => {
       console.log("values: ", values);
 
       axios
-        .post(`${baseUrl}/api/v1/login`, {
-          email: values.email,
-          password: values.password,
-        })
+        .post(
+          `${baseUrl}/api/v1/login`,
+          {
+            email: values.email,
+            password: values.password,
+          },
+          {
+            withCredentials: true,
+          }
+        )
         .then((res) => {
           console.log("res: ", res.data);
 
@@ -81,7 +87,7 @@ const Login = () => {
                 firstName: res.data.firstName,
                 lastName: res.data.lastName,
                 email: res.data.email,
-                token: res.data.token,
+                access_token: res.data.access_token,
                 _id: res.data._id,
               },
             });
